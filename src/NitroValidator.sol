@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { CBORDecoding } from "@solidity-cbor/CBORDecoding.sol";
-import { CBOR } from "@solidity-cbor/CBOREncoding.sol";
-import { ByteParser } from "@solidity-cbor/ByteParser.sol";
-import { INitroValidator } from "./INitroValidator.sol";
-import { NitroProver } from "@marlinprotocol/NitroProver.sol";
+import {CBORDecoding} from "@solidity-cbor/CBORDecoding.sol";
+import {CBOR} from "@solidity-cbor/CBOREncoding.sol";
+import {ByteParser} from "@solidity-cbor/ByteParser.sol";
+import {INitroValidator} from "./INitroValidator.sol";
+import {NitroProver} from "@marlinprotocol/NitroProver.sol";
 
 contract NitroValidator is NitroProver, INitroValidator {
     /// @notice based off of NitroProver's verifyAttestation. Will validate an attestation and return the public key and PRC0 used
-    function validateAttestation(
-        bytes memory attestation,
-        uint256 maxAge
-    ) external returns (bytes memory, bytes memory) {
+    function validateAttestation(bytes memory attestation, uint256 maxAge)
+        external
+        returns (bytes memory, bytes memory)
+    {
         /* 
         https://github.com/aws/aws-nitro-enclaves-nsm-api/blob/main/docs/attestation_process.md#31-cose-and-cbor
         Attestation document is an array of 4 elements
@@ -23,7 +23,7 @@ contract NitroValidator is NitroProver, INitroValidator {
             signature:   This field contains the computed signature value.
         ]
         */
-        
+
         // GAS: Attestation decode gas ~62k
         bytes[] memory attestationDecoded = CBORDecoding.decodeArray(attestation);
 
@@ -44,7 +44,8 @@ contract NitroValidator is NitroProver, INitroValidator {
         require(unprotectedHeader.length == 0, "Unprotected header should be empty");
 
         bytes memory payload = attestationDecoded[2];
-        (bytes memory certPubKey, bytes memory enclavePubKey, bytes memory pcr0) = _getAttestationDocKeysAndPCR0(payload, maxAge);
+        (bytes memory certPubKey, bytes memory enclavePubKey, bytes memory pcr0) =
+            _getAttestationDocKeysAndPCR0(payload, maxAge);
 
         // verify COSE signature as per https://www.rfc-editor.org/rfc/rfc9052.html#section-4.4
         bytes memory attestationSig = attestationDecoded[3];
@@ -52,7 +53,7 @@ contract NitroValidator is NitroProver, INitroValidator {
         // create COSE structure
         // GAS: COSE structure creation gas ~42.7k
         // TODO: set CBOR length appropriately
-        CBOR.CBORBuffer memory buf = CBOR.create(payload.length*2);
+        CBOR.CBORBuffer memory buf = CBOR.create(payload.length * 2);
         CBOR.startFixedArray(buf, 4);
         // context to be written as Signature1 as COSE_Sign1 is used https://www.rfc-editor.org/rfc/rfc9052.html#section-4.4-2.1.1
         CBOR.writeString(buf, "Signature1");
@@ -70,10 +71,14 @@ contract NitroValidator is NitroProver, INitroValidator {
     /// @notice validates the attestation payload and returns the used public key, enclave public key and pcr0 used
     /// @return certPubKey certificate public key
     /// @return enclavePubKey enclave public key
-    /// @return pcr0 platform configuration register 0 
-    function _getAttestationDocKeysAndPCR0(bytes memory attestationPayload, uint256 maxAge) internal view returns(bytes memory certPubKey, bytes memory enclavePubKey, bytes memory pcr0) {
+    /// @return pcr0 platform configuration register 0
+    function _getAttestationDocKeysAndPCR0(bytes memory attestationPayload, uint256 maxAge)
+        internal
+        view
+        returns (bytes memory certPubKey, bytes memory enclavePubKey, bytes memory pcr0)
+    {
         // TODO: validate if this check is expected? https://github.com/aws/aws-nitro-enclaves-nsm-api/blob/main/docs/attestation_process.md?plain=1#L168
-        require(attestationPayload.length <= 2**15, "Attestation too long");
+        require(attestationPayload.length <= 2 ** 15, "Attestation too long");
 
         // validations as per https://github.com/aws/aws-nitro-enclaves-nsm-api/blob/main/docs/attestation_process.md#32-syntactical-validation
         // issuing Nitro hypervisor module ID
@@ -87,37 +92,37 @@ contract NitroValidator is NitroProver, INitroValidator {
         bytes memory cabundle;
         bytes memory userData;
 
-        for(uint256 i=0; i < attestationStructure.length; i++) {
+        for (uint256 i = 0; i < attestationStructure.length; i++) {
             bytes32 keyHash = keccak256(attestationStructure[i][0]);
-            if(keyHash == keccak256(bytes("module_id"))) {
+            if (keyHash == keccak256(bytes("module_id"))) {
                 moduleId = attestationStructure[i][1];
                 continue;
             }
-            if(keyHash == keccak256(bytes("timestamp"))) {
+            if (keyHash == keccak256(bytes("timestamp"))) {
                 rawTimestamp = attestationStructure[i][1];
                 continue;
             }
-            if(keyHash == keccak256(bytes("digest"))) {
+            if (keyHash == keccak256(bytes("digest"))) {
                 digest = attestationStructure[i][1];
                 continue;
             }
-            if(keyHash == keccak256(bytes("pcrs"))) {
+            if (keyHash == keccak256(bytes("pcrs"))) {
                 rawPcrs = attestationStructure[i][1];
                 continue;
             }
-            if(keyHash == keccak256(bytes("certificate"))) {
+            if (keyHash == keccak256(bytes("certificate"))) {
                 certificate = attestationStructure[i][1];
                 continue;
             }
-            if(keyHash == keccak256(bytes("cabundle"))) {
+            if (keyHash == keccak256(bytes("cabundle"))) {
                 cabundle = attestationStructure[i][1];
                 continue;
             }
-            if(keyHash == keccak256(bytes("public_key"))) {
+            if (keyHash == keccak256(bytes("public_key"))) {
                 enclavePubKey = attestationStructure[i][1];
                 continue;
             }
-            if(keyHash == keccak256(bytes("user_data"))) {
+            if (keyHash == keccak256(bytes("user_data"))) {
                 userData = attestationStructure[i][1];
                 continue;
             }
@@ -144,7 +149,7 @@ contract NitroValidator is NitroProver, INitroValidator {
         require(pcrs.length != 0, "no pcr specified");
         require(pcrs.length <= 32, "only 32 pcrs allowed");
 
-        for(uint256 i=0; i < pcrs.length; i++) {
+        for (uint256 i = 0; i < pcrs.length; i++) {
             if (uint8(bytes1(pcrs[i][0])) == uint8(0)) {
                 return pcrs[i][0];
             }

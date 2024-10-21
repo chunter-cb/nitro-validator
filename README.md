@@ -18,7 +18,7 @@ https://book.getfoundry.sh/
 ### Build
 
 ```shell
-$ forge build
+$ forge build --via-ir
 ```
 
 ### Test
@@ -48,7 +48,7 @@ $ anvil
 ### Deploy
 
 ```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+$ forge script script/DeployNitroValidator.s.sol:DeployNitroValidator --rpc-url <your_rpc_url>
 ```
 
 ### Cast

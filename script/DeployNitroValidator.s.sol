@@ -12,7 +12,7 @@ contract DeployNitroValidator is Script {
     function run() public returns (address addr_) {
         vm.startBroadcast();
 
-        addr_ = address(new NitroValidator{ salt: SALT }());
+        addr_ = address(new NitroValidator{salt: SALT}());
 
         console.log("NitroValidator deployed at:", addr_);
 

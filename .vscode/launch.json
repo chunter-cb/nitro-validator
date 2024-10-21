@@ -1,0 +1,15 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "foundry",
+            "request": "launch",
+            "name": "Debug Forge Test",
+            "program": "${workspaceFolder}/test/NitroValidatorTest.sol",
+            "projectRoot": "${workspaceFolder}",
+            "args": ["--via-ir --debug"],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": true
+        }
+    ]
+}
