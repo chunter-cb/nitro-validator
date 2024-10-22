@@ -151,7 +151,7 @@ contract NitroValidator is NitroProver, INitroValidator {
 
         for (uint256 i = 0; i < pcrs.length; i++) {
             if (uint8(bytes1(pcrs[i][0])) == uint8(0)) {
-                return pcrs[i][0];
+                return pcrs[i][1];
             }
         }
 

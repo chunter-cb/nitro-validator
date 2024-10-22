@@ -2,14 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "foundry",
+            "type": "hardhat",
             "request": "launch",
-            "name": "Debug Forge Test",
-            "program": "${workspaceFolder}/test/NitroValidatorTest.sol",
-            "projectRoot": "${workspaceFolder}",
-            "args": ["--via-ir --debug"],
+            "name": "Debug Solidity Test",
+            "task": "test",
+            "args": ["${relativeFile}"],
             "cwd": "${workspaceFolder}",
-            "stopOnEntry": true
+            "console": "integratedTerminal"
         }
     ]
 }
